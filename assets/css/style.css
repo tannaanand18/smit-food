@@ -1,0 +1,164 @@
+:root {
+    --primary-color: #E8450A;
+    --primary-hover: #c43907;
+    --bg-color: #FFF8F3;
+    --text-color: #1C1C1E;
+    --accent-color: #F5A623;
+    --card-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    --border-radius: 16px;
+    --btn-radius: 8px;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.font-playfair {
+    font-family: 'Playfair Display', serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+}
+
+/* Navbar */
+.custom-navbar {
+    background-color: rgba(255, 248, 243, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.navbar-brand span {
+    font-size: 1.5rem;
+    color: var(--text-color);
+}
+
+.nav-link {
+    font-weight: 500;
+    color: var(--text-color);
+    transition: color 0.3s;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: var(--primary-color) !important;
+}
+
+/* Primary Button overrides */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    border-radius: var(--btn-radius);
+    padding: 10px 24px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+    transform: translateY(-2px);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.hover-text-primary:hover {
+    color: var(--primary-color) !important;
+}
+
+/* Cards */
+.food-card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+    background: #fff;
+    height: 100%;
+}
+
+.food-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+.food-card img {
+    height: 200px;
+    object-fit: cover;
+}
+
+.food-card .badge {
+    background-color: var(--accent-color);
+    color: #fff;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 20px;
+}
+
+/* Floating Cart Button */
+.floating-cart {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: var(--primary-color);
+    color: white;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 15px rgba(232, 69, 10, 0.4);
+    z-index: 1000;
+    transition: transform 0.3s;
+}
+
+.floating-cart:hover {
+    transform: scale(1.1);
+    color: white;
+}
+
+.floating-cart .badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(25%, -25%);
+    font-size: 0.75rem;
+}
+
+/* Checkout sticky */
+.sticky-summary {
+    position: sticky;
+    top: 90px;
+}
+
+/* Success Checkmark */
+.success-checkmark {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+    border-radius: 50%;
+    display: block;
+    stroke-width: 2;
+    stroke: #4bb71b;
+    stroke-miterlimit: 10;
+    box-shadow: inset 0px 0px 0px #4bb71b;
+    animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+}
