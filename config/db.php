@@ -1,8 +1,8 @@
 <?php
-$host = 'localhost';
-$dbname = 'food_order_db';
-$user = 'root';
-$password = 'tanna_anand_1';
+$host = getenv('DB_HOST') ?: 'localhost';
+$dbname = getenv('DB_NAME') ?: 'food_order_db';
+$user = getenv('DB_USER') ?: 'root';
+$password = getenv('DB_PASS') ?: 'tanna_anand_1';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $password);
