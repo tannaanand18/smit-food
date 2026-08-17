@@ -4,7 +4,7 @@
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 // Serve static assets directly if requested through here
-if (preg_match('\.(?:png|jpg|jpeg|gif|css|js|ico|svg)$', $uri)) {
+if (preg_match('/\.(?:png|jpg|jpeg|gif|css|js|ico|svg)$/i', $uri)) {
     return false;
 }
 
