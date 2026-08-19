@@ -4,7 +4,7 @@ $dbname = getenv('DB_NAME') ?: 'food_order_db';
 $user = getenv('DB_USER') ?: 'root';
 $password = getenv('DB_PASS') ?: 'tanna_anand_1';
 
-// Clean host if user included port or protocol (e.g. gateway...com:4000)
+// Clean host if user included port or protocol
 $host = trim(str_replace(['http://', 'https://'], '', $raw_host));
 $port = getenv('DB_PORT');
 
@@ -20,7 +20,6 @@ if (empty($port)) {
     $port = (strpos($host, 'tidbcloud.com') !== false) ? '4000' : '3306';
 }
 
-// Fix common typo where 40000 (extra zero) is entered instead of 4000
 if ($port === '40000') {
     $port = '4000';
 }
@@ -28,27 +27,24 @@ if ($port === '40000') {
 // Construct DSN
 $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
 
-try {
-    // Attempt 1: Standard connection
-    $pdo = new PDO($dsn, $user, $password, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_TIMEOUT => 5
-    ]);
-} catch (PDOException $e1) {
-    try {
-        // Attempt 2: Connection with SSL disabled verification for serverless
-        $options = [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_TIMEOUT => 5
-        ];
-        if (defined('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')) {
-            @$options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
-        }
-        $pdo = new PDO($dsn, $user, $password, $options);
-    } catch (PDOException $e2) {
-        die("Database connection failed [Connecting to $host:$port as $user]: " . $e2->getMessage());
+$options = [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_TIMEOUT => 10
+];
+
+// Enforce SSL for remote connections (TiDB Cloud requirement)
+if ($host !== 'localhost' && $host !== '127.0.0.1') {
+    // 1012 is PDO::MYSQL_ATTR_SSL_CA
+    $options[1012] = true;
+    if (defined('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')) {
+        @$options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
     }
+}
+
+try {
+    $pdo = new PDO($dsn, $user, $password, $options);
+} catch (PDOException $e) {
+    die("Database connection failed [Connecting to $host:$port as $user]: " . $e->getMessage());
 }
 ?>
