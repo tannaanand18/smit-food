@@ -20,6 +20,11 @@ if (empty($port)) {
     $port = (strpos($host, 'tidbcloud.com') !== false) ? '4000' : '3306';
 }
 
+// Fix common typo where 40000 (extra zero) is entered instead of 4000
+if ($port === '40000') {
+    $port = '4000';
+}
+
 // Construct DSN
 $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
 
