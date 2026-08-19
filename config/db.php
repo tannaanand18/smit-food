@@ -24,29 +24,56 @@ if ($port === '40000') {
     $port = '4000';
 }
 
-// Construct DSN
 $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
+$ca_file = __DIR__ . '/cacert.pem';
 
-$options = [
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_TIMEOUT => 10
-];
+// Strategies to establish TLS/SSL with TiDB Cloud
+$ssl_attempts = [];
 
-// Enforce SSL using driver integer keys (1012 = SSL_CA, 1014 = VERIFY_SERVER_CERT)
-if ($host !== 'localhost' && $host !== '127.0.0.1') {
-    $ca_file = __DIR__ . '/cacert.pem';
-    if (file_exists($ca_file)) {
-        $options[1012] = $ca_file;
-    } elseif (file_exists('/etc/ssl/certs/ca-certificates.crt')) {
-        $options[1012] = '/etc/ssl/certs/ca-certificates.crt';
-    }
-    $options[1014] = false;
+// Strategy 1: Bundled cacert.pem
+if (file_exists($ca_file)) {
+    $ssl_attempts[] = [1012 => $ca_file, 1014 => false];
 }
 
-try {
-    $pdo = new PDO($dsn, $user, $password, $options);
-} catch (PDOException $e) {
-    die("Database connection failed [Connecting to $host:$port as $user]: " . $e->getMessage());
+// Strategy 2: Linux system CA file
+if (file_exists('/etc/ssl/certs/ca-certificates.crt')) {
+    $ssl_attempts[] = [1012 => '/etc/ssl/certs/ca-certificates.crt', 1014 => false];
+}
+
+// Strategy 3: Linux system CA directory (1009 = MYSQL_ATTR_SSL_CAPATH)
+if (is_dir('/etc/ssl/certs')) {
+    $ssl_attempts[] = [1009 => '/etc/ssl/certs', 1014 => false];
+}
+
+// Strategy 4: Fallback SSL boolean
+$ssl_attempts[] = [1012 => true];
+
+$pdo = null;
+$last_error = '';
+
+if ($host === 'localhost' || $host === '127.0.0.1') {
+    $pdo = new PDO($dsn, $user, $password, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+    ]);
+} else {
+    foreach ($ssl_attempts as $ssl_opts) {
+        try {
+            $opts = [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_TIMEOUT => 5
+            ] + $ssl_opts;
+
+            $pdo = new PDO($dsn, $user, $password, $opts);
+            break;
+        } catch (PDOException $e) {
+            $last_error = $e->getMessage();
+        }
+    }
+}
+
+if (!$pdo) {
+    die("Database connection failed [Host: $host:$port, User: $user, CA_File_Exists: " . (file_exists($ca_file) ? 'YES' : 'NO') . "]: " . $last_error);
 }
 ?>
