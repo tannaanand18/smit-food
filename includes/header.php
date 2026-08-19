@@ -14,7 +14,7 @@ if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Foodies - Online Food Order System</title>
+    <title>Chef Egg - Egg-cellent Nutrition</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts: Playfair Display & Inter -->
@@ -29,8 +29,8 @@ if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
 <nav class="navbar navbar-expand-lg sticky-top custom-navbar">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="/index.php">
-            <i class="fa-solid fa-utensils me-2 text-primary"></i>
-            <span class="fw-bold">Foodies</span>
+            <i class="fa-solid fa-egg me-2 text-warning fs-3"></i>
+            <span class="fw-bold fs-3 text-warning">Chef Egg</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>

@@ -3,29 +3,29 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/header.php';
 
 // Fetch all menu items
-$stmt = $pdo->query("SELECT * FROM menu WHERE is_available = 1 ORDER BY category, name");
+$stmt = $pdo->query("SELECT * FROM menu WHERE is_available = 1 ORDER BY category, id");
 $items = $stmt->fetchAll();
 
-// Group items by category for easy filtering (if we want to render by category, but here we just render all and use JS or CSS to filter)
-$categories = ['Starters', 'Main Course', 'Drinks', 'Desserts'];
+// Categories defined in Chef Egg menu
+$categories = ['Starter', 'Omelette', 'Kheema And Gotala', 'Egg Fry'];
 
 $active_cat = $_GET['cat'] ?? 'All';
 ?>
 
 <div class="container py-5">
-    <div class="text-center mb-5">
-        <h1 class="font-playfair fw-bold text-dark">Our Menu</h1>
-        <p class="text-muted">Discover our delicious offerings</p>
+    <div class="text-center mb-4">
+        <h1 class="font-playfair fw-bold text-warning display-4">Chef Egg Menu</h1>
+        <p class="text-white-50 lead fs-5">WHEN WE COOK... WE CARE FOR YOUR HEALTH !!!</p>
     </div>
 
     <!-- Category Filters -->
     <ul class="nav nav-pills justify-content-center mb-5" id="menu-filters">
         <li class="nav-item">
-            <a class="nav-link rounded-pill px-4 mx-1 <?php echo $active_cat === 'All' ? 'active btn-primary' : 'text-dark border'; ?>" href="#" data-filter="All">All</a>
+            <a class="nav-link rounded-pill px-4 mx-1 my-1 <?php echo $active_cat === 'All' ? 'active btn-warning text-dark fw-bold' : 'text-white border border-secondary'; ?>" href="#" data-filter="All">All Dishes</a>
         </li>
         <?php foreach($categories as $cat): ?>
             <li class="nav-item">
-                <a class="nav-link rounded-pill px-4 mx-1 <?php echo $active_cat === $cat ? 'active btn-primary' : 'text-dark border'; ?>" href="#" data-filter="<?php echo htmlspecialchars($cat); ?>">
+                <a class="nav-link rounded-pill px-4 mx-1 my-1 <?php echo $active_cat === $cat ? 'active btn-warning text-dark fw-bold' : 'text-white border border-secondary'; ?>" href="#" data-filter="<?php echo htmlspecialchars($cat); ?>">
                     <?php echo htmlspecialchars($cat); ?>
                 </a>
             </li>
@@ -40,17 +40,17 @@ $active_cat = $_GET['cat'] ?? 'All';
                     <img src="<?php echo htmlspecialchars($item['image_url']); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($item['name']); ?>">
                     <div class="card-body d-flex flex-column">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="card-title font-playfair fw-bold mb-0"><?php echo htmlspecialchars($item['name']); ?></h5>
-                            <span class="badge"><?php echo htmlspecialchars($item['category']); ?></span>
+                            <h5 class="card-title font-playfair fw-bold mb-0 text-white"><?php echo htmlspecialchars($item['name']); ?></h5>
+                            <span class="badge bg-warning text-dark"><?php echo htmlspecialchars($item['category']); ?></span>
                         </div>
-                        <p class="card-text text-muted small flex-grow-1"><?php echo htmlspecialchars($item['description']); ?></p>
+                        <p class="card-text text-white-50 small flex-grow-1"><?php echo htmlspecialchars($item['description']); ?></p>
                         <div class="d-flex justify-content-between align-items-center mt-3">
-                            <span class="fs-5 fw-bold text-primary">$<?php echo number_format($item['price'], 2); ?></span>
-                            <button class="btn btn-outline-primary rounded-pill add-to-cart-btn" 
+                            <span class="fs-4 fw-bold text-warning">₹<?php echo number_format($item['price'], 0); ?>/-</span>
+                            <button class="btn btn-warning btn-sm rounded-pill fw-bold text-dark add-to-cart-btn px-3 py-2" 
                                     data-id="<?php echo $item['id']; ?>" 
                                     data-name="<?php echo htmlspecialchars($item['name']); ?>" 
                                     data-price="<?php echo $item['price']; ?>">
-                                Add to Cart
+                                <i class="fa-solid fa-cart-plus me-1"></i> Add to Cart
                             </button>
                         </div>
                     </div>
@@ -83,11 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Update active state
             filters.forEach(f => {
-                f.classList.remove('active', 'btn-primary');
-                f.classList.add('text-dark', 'border');
+                f.classList.remove('active', 'btn-warning', 'text-dark', 'fw-bold');
+                f.classList.add('text-white', 'border', 'border-secondary');
             });
-            this.classList.remove('text-dark', 'border');
-            this.classList.add('active', 'btn-primary');
+            this.classList.remove('text-white', 'border', 'border-secondary');
+            this.classList.add('active', 'btn-warning', 'text-dark', 'fw-bold');
             
             const category = this.dataset.filter;
             applyFilter(category);
@@ -98,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
         items.forEach(item => {
             if (category === 'All' || item.dataset.category === category) {
                 item.style.display = 'block';
-                // Slight animation
                 item.animate([
                     { opacity: 0, transform: 'scale(0.95)' },
                     { opacity: 1, transform: 'scale(1)' }
@@ -114,7 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const floatBadge = document.getElementById('floating-cart-badge');
     
     if (mainBadge && floatBadge) {
-        // Observe changes to main badge
         const observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 if (mutation.type === "childList") {
@@ -122,7 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
-        
         observer.observe(mainBadge, { childList: true });
     }
 });
