@@ -26,32 +26,29 @@ if ($port === '40000') {
 
 $ca_file = __DIR__ . '/cacert.pem';
 
-// Array of DSN strings & options
+// Connect without specifying dbname first so connection won't fail if database is not yet created
+$dsn_no_db = "mysql:host=$host;port=$port;charset=utf8mb4";
+
 $attempts = [
-    // 1. DSN with sslmode=REQUIRED + SSL_CA file
+    // 1. DSN sslmode=REQUIRED + CA File
     [
-        'dsn' => "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4;sslmode=REQUIRED",
+        'dsn' => "$dsn_no_db;sslmode=REQUIRED",
         'options' => [1012 => $ca_file, 1014 => false]
     ],
-    // 2. DSN with sslmode=REQUIRED
+    // 2. DSN sslmode=REQUIRED
     [
-        'dsn' => "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4;sslmode=REQUIRED",
+        'dsn' => "$dsn_no_db;sslmode=REQUIRED",
         'options' => []
     ],
-    // 3. DSN with sslmode=REQUIRED;sslrootcert
+    // 3. Standard DSN + CA File
     [
-        'dsn' => "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4;sslmode=REQUIRED;sslrootcert=$ca_file",
-        'options' => []
-    ],
-    // 4. Standard DSN with MYSQL_ATTR_SSL_CA (1012)
-    [
-        'dsn' => "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4",
+        'dsn' => $dsn_no_db,
         'options' => [1012 => $ca_file, 1014 => false]
     ],
-    // 5. Standard DSN with MYSQL_ATTR_SSL_CAPATH (1009)
+    // 4. Standard DSN
     [
-        'dsn' => "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4",
-        'options' => [1009 => __DIR__, 1014 => false]
+        'dsn' => $dsn_no_db,
+        'options' => []
     ]
 ];
 
@@ -59,7 +56,8 @@ $pdo = null;
 $last_error = '';
 
 if ($host === 'localhost' || $host === '127.0.0.1') {
-    $pdo = new PDO("mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4", $user, $password, [
+    $dsn_local = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
+    $pdo = new PDO($dsn_local, $user, $password, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
     ]);
@@ -81,6 +79,24 @@ if ($host === 'localhost' || $host === '127.0.0.1') {
 }
 
 if (!$pdo) {
-    die("Database connection failed [Vercel Deployment Latest]: " . $last_error);
+    die("Database connection failed [Host: $host:$port]: " . $last_error);
+}
+
+// Auto-provision database & tables on remote host if not present
+try {
+    $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
+    $pdo->exec("USE `$dbname`;");
+
+    // Check if menu table exists, if not auto-seed database.sql
+    $table_check = $pdo->query("SHOW TABLES LIKE 'menu'")->fetch();
+    if (!$table_check) {
+        $sql_file = __DIR__ . '/../database.sql';
+        if (file_exists($sql_file)) {
+            $sql = file_get_contents($sql_file);
+            $pdo->exec($sql);
+        }
+    }
+} catch (PDOException $e) {
+    // Selected / created safely
 }
 ?>
