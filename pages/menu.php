@@ -6,8 +6,18 @@ require_once __DIR__ . '/../includes/header.php';
 $stmt = $pdo->query("SELECT * FROM menu WHERE is_available = 1 ORDER BY category, id");
 $items = $stmt->fetchAll();
 
-// Categories defined in Chef Egg menu
-$categories = ['Starter', 'Omelette', 'Kheema And Gotala', 'Egg Fry'];
+// All 9 Categories from Chef Egg Menu PDF
+$categories = [
+    'Starter',
+    'Omelette',
+    'Kheema And Gotala',
+    'Egg Fry',
+    'Gravy',
+    'Chef Egg Special',
+    'Rice',
+    "Add On's",
+    'Colddrink'
+];
 
 $active_cat = $_GET['cat'] ?? 'All';
 ?>
@@ -18,19 +28,15 @@ $active_cat = $_GET['cat'] ?? 'All';
         <p class="text-white-50 lead fs-5">WHEN WE COOK... WE CARE FOR YOUR HEALTH !!!</p>
     </div>
 
-    <!-- Category Filters -->
-    <ul class="nav nav-pills justify-content-center mb-5" id="menu-filters">
-        <li class="nav-item">
-            <a class="nav-link rounded-pill px-4 mx-1 my-1 <?php echo $active_cat === 'All' ? 'active btn-warning text-dark fw-bold' : 'text-white border border-secondary'; ?>" href="#" data-filter="All">All Dishes</a>
-        </li>
+    <!-- Category Filters (Horizontal Scroll / Wrap) -->
+    <div class="d-flex justify-content-start justify-content-md-center flex-wrap mb-5 gap-2" id="menu-filters">
+        <a class="nav-link rounded-pill px-4 py-2 <?php echo $active_cat === 'All' ? 'active btn-warning text-dark fw-bold' : 'text-white border border-secondary'; ?>" href="#" data-filter="All">All Dishes</a>
         <?php foreach($categories as $cat): ?>
-            <li class="nav-item">
-                <a class="nav-link rounded-pill px-4 mx-1 my-1 <?php echo $active_cat === $cat ? 'active btn-warning text-dark fw-bold' : 'text-white border border-secondary'; ?>" href="#" data-filter="<?php echo htmlspecialchars($cat); ?>">
-                    <?php echo htmlspecialchars($cat); ?>
-                </a>
-            </li>
+            <a class="nav-link rounded-pill px-4 py-2 <?php echo $active_cat === $cat ? 'active btn-warning text-dark fw-bold' : 'text-white border border-secondary'; ?>" href="#" data-filter="<?php echo htmlspecialchars($cat); ?>">
+                <?php echo htmlspecialchars($cat); ?>
+            </a>
         <?php endforeach; ?>
-    </ul>
+    </div>
 
     <!-- Menu Grid -->
     <div class="row g-4" id="menu-grid">

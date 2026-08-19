@@ -9,7 +9,7 @@ require_once __DIR__ . '/includes/header.php';
         <span class="badge bg-warning text-dark fs-6 px-3 py-2 rounded-pill mb-3 fw-bold">WELCOME TO CHEF EGG</span>
         <h1 class="display-3 font-playfair fw-bold mb-3 text-white">Egg-cellent <span class="text-warning">Nutrition</span> <br>For A Healthy Lifestyle!</h1>
         <p class="lead mb-4 text-white-50 mx-auto" style="max-width: 650px;">All our recipes are crafted in such a way that you get maximum health benefits in each and every meal you order from us.</p>
-        <a href="/pages/menu.php" class="btn btn-warning btn-lg rounded-pill px-5 py-3 shadow-lg fs-5 fw-bold text-dark">Explore Full Menu</a>
+        <a href="/pages/menu.php" class="btn btn-warning btn-lg rounded-pill px-5 py-3 shadow-lg fs-5 fw-bold text-dark">Explore Full Menu (75+ Items)</a>
     </div>
 </section>
 
@@ -17,13 +17,12 @@ require_once __DIR__ . '/includes/header.php';
 <section class="py-5" style="background-color: #161616;">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="font-playfair fw-bold text-white">Our Specialties</h2>
-            <p class="text-white-50">Explore our delicious egg categories crafted with care</p>
+            <h2 class="font-playfair fw-bold text-white">Explore Our Specialties</h2>
+            <p class="text-white-50">9 Delicious categories prepared fresh every day</p>
         </div>
         
         <div class="row g-4 justify-content-center">
-            <!-- Category Card 1 -->
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-4 col-lg-3">
                 <a href="/pages/menu.php?cat=Starter" class="text-decoration-none">
                     <div class="card food-card text-center py-4 border-secondary">
                         <i class="fa-solid fa-bowl-food fs-1 text-warning mb-3"></i>
@@ -32,8 +31,7 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                 </a>
             </div>
-            <!-- Category Card 2 -->
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-4 col-lg-3">
                 <a href="/pages/menu.php?cat=Omelette" class="text-decoration-none">
                     <div class="card food-card text-center py-4 border-secondary">
                         <i class="fa-solid fa-egg fs-1 text-warning mb-3"></i>
@@ -42,8 +40,7 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                 </a>
             </div>
-            <!-- Category Card 3 -->
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-4 col-lg-3">
                 <a href="/pages/menu.php?cat=Kheema And Gotala" class="text-decoration-none">
                     <div class="card food-card text-center py-4 border-secondary">
                         <i class="fa-solid fa-fire-burner fs-1 text-warning mb-3"></i>
@@ -52,8 +49,7 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                 </a>
             </div>
-            <!-- Category Card 4 -->
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-4 col-lg-3">
                 <a href="/pages/menu.php?cat=Egg Fry" class="text-decoration-none">
                     <div class="card food-card text-center py-4 border-secondary">
                         <i class="fa-solid fa-kitchen-set fs-1 text-warning mb-3"></i>
@@ -62,11 +58,47 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                 </a>
             </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <a href="/pages/menu.php?cat=Gravy" class="text-decoration-none">
+                    <div class="card food-card text-center py-4 border-secondary">
+                        <i class="fa-solid fa-utensils fs-1 text-warning mb-3"></i>
+                        <h5 class="text-white mb-1">Gravy</h5>
+                        <small class="text-white-50">Egg Ravaiya, Tikhari, Paplet</small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <a href="/pages/menu.php?cat=Chef Egg Special" class="text-decoration-none">
+                    <div class="card food-card text-center py-4 border-secondary">
+                        <i class="fa-solid fa-crown fs-1 text-warning mb-3"></i>
+                        <h5 class="text-white mb-1">Chef Special</h5>
+                        <small class="text-white-50">Bigg Boss, Bahubali, Dhamaka</small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <a href="/pages/menu.php?cat=Rice" class="text-decoration-none">
+                    <div class="card food-card text-center py-4 border-secondary">
+                        <i class="fa-solid fa-bowl-rice fs-1 text-warning mb-3"></i>
+                        <h5 class="text-white mb-1">Rice & Biryani</h5>
+                        <small class="text-white-50">Egg Biryani, Dum Pulav, Khichdi</small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <a href="/pages/menu.php?cat=Add On's" class="text-decoration-none">
+                    <div class="card food-card text-center py-4 border-secondary">
+                        <i class="fa-solid fa-bread-slice fs-1 text-warning mb-3"></i>
+                        <h5 class="text-white mb-1">Add On's</h5>
+                        <small class="text-white-50">Papad, Buns, Chapati, Salads</small>
+                    </div>
+                </a>
+            </div>
         </div>
     </div>
 </section>
 
-<!-- Health Chart Section (From PDF Screenshot 1) -->
+<!-- Health Chart Section -->
 <section class="py-5 bg-dark">
     <div class="container">
         <div class="row align-items-center g-4">
@@ -176,7 +208,7 @@ require_once __DIR__ . '/includes/header.php';
                     <i class="fa-solid fa-book-open fs-2 text-warning"></i>
                 </div>
                 <h4 class="text-white">1. Select Dishes</h4>
-                <p class="text-white-50 px-3">Choose from Starters, Omelettes, Kheema, or Egg Fry varieties.</p>
+                <p class="text-white-50 px-3">Choose from 75+ egg dishes across 9 categories.</p>
             </div>
             <div class="col-md-4">
                 <div class="bg-dark border border-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4 shadow-sm" style="width: 90px; height: 90px;">
