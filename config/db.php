@@ -24,48 +24,55 @@ if ($port === '40000') {
     $port = '4000';
 }
 
-$dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
 $ca_file = __DIR__ . '/cacert.pem';
 
-// Strategies to establish TLS/SSL with TiDB Cloud
-$ssl_attempts = [];
-
-// Strategy 1: Bundled cacert.pem
-if (file_exists($ca_file)) {
-    $ssl_attempts[] = [1012 => $ca_file, 1014 => false];
-}
-
-// Strategy 2: Linux system CA file
-if (file_exists('/etc/ssl/certs/ca-certificates.crt')) {
-    $ssl_attempts[] = [1012 => '/etc/ssl/certs/ca-certificates.crt', 1014 => false];
-}
-
-// Strategy 3: Linux system CA directory (1009 = MYSQL_ATTR_SSL_CAPATH)
-if (is_dir('/etc/ssl/certs')) {
-    $ssl_attempts[] = [1009 => '/etc/ssl/certs', 1014 => false];
-}
-
-// Strategy 4: Fallback SSL boolean
-$ssl_attempts[] = [1012 => true];
+// Comprehensive list of SSL DSN and driver options for mysqlnd & TiDB Cloud
+$dsn_attempts = [
+    // 1. DSN with sslmode=REQUIRED + MYSQL_ATTR_SSL_CA
+    [
+        'dsn' => "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4;sslmode=REQUIRED",
+        'options' => [1012 => $ca_file, 1014 => false]
+    ],
+    // 2. DSN with sslmode=REQUIRED
+    [
+        'dsn' => "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4;sslmode=REQUIRED",
+        'options' => []
+    ],
+    // 3. DSN with sslmode=REQUIRED & sslrootcert
+    [
+        'dsn' => "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4;sslmode=REQUIRED;sslrootcert=$ca_file",
+        'options' => []
+    ],
+    // 4. DSN with ssl-mode=REQUIRED
+    [
+        'dsn' => "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4;ssl-mode=REQUIRED",
+        'options' => []
+    ],
+    // 5. Driver MYSQL_ATTR_SSL_CAPATH
+    [
+        'dsn' => "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4",
+        'options' => [1009 => __DIR__, 1014 => false]
+    ]
+];
 
 $pdo = null;
 $last_error = '';
 
 if ($host === 'localhost' || $host === '127.0.0.1') {
-    $pdo = new PDO($dsn, $user, $password, [
+    $pdo = new PDO("mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4", $user, $password, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
     ]);
 } else {
-    foreach ($ssl_attempts as $ssl_opts) {
+    foreach ($dsn_attempts as $attempt) {
         try {
             $opts = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_TIMEOUT => 5
-            ] + $ssl_opts;
+            ] + $attempt['options'];
 
-            $pdo = new PDO($dsn, $user, $password, $opts);
+            $pdo = new PDO($attempt['dsn'], $user, $password, $opts);
             break;
         } catch (PDOException $e) {
             $last_error = $e->getMessage();
@@ -74,6 +81,6 @@ if ($host === 'localhost' || $host === '127.0.0.1') {
 }
 
 if (!$pdo) {
-    die("Database connection failed [Host: $host:$port, User: $user, CA_File_Exists: " . (file_exists($ca_file) ? 'YES' : 'NO') . "]: " . $last_error);
+    die("Database connection failed [Host: $host:$port, User: $user]: " . $last_error);
 }
 ?>
