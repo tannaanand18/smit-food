@@ -41,8 +41,8 @@ function getStatusBadgeClass($status) {
         <div class="card food-card border-secondary overflow-hidden">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table align-middle mb-0">
-                        <thead class="table-light">
+                    <table class="table table-dark table-hover align-middle mb-0">
+                        <thead class="table-dark text-warning border-secondary">
                             <tr>
                                 <th class="ps-4 py-3">Order ID</th>
                                 <th class="py-3">Date</th>

@@ -46,8 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <div class="card food-card border-secondary rounded-4 overflow-hidden">
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table align-middle mb-0">
-                                <thead class="table-light">
+                            <table class="table table-dark table-hover align-middle mb-0">
+                                <thead class="table-dark text-warning border-secondary">
                                     <tr>
                                         <th class="ps-4 py-3">Item</th>
                                         <th class="py-3">Price</th>
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                         $subtotal += $item_total;
                                     ?>
                                         <tr>
-                                            <td class="ps-4 py-3 fw-medium text-white"><?php echo htmlspecialchars($item['name']); ?></td>
+                                            <td class="ps-4 py-3 fw-bold text-white fs-6"><?php echo htmlspecialchars($item['name']); ?></td>
                                             <td class="py-3 text-warning">₹<?php echo number_format($item['price'], 0); ?></td>
                                             <td class="py-3" style="width: 150px;">
                                                 <form method="POST" action="/pages/cart.php" class="d-flex align-items-center cart-update-form">
