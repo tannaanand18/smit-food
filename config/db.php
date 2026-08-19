@@ -1,12 +1,19 @@
 <?php
-$raw_host = getenv('DB_HOST') ?: 'localhost';
-$dbname = getenv('DB_NAME') ?: 'food_order_db';
-$user = getenv('DB_USER') ?: 'root';
-$password = getenv('DB_PASS') ?: 'tanna_anand_1';
+function get_db_env($key, $default = '') {
+    if (isset($_ENV[$key]) && $_ENV[$key] !== '') return trim($_ENV[$key]);
+    if (isset($_SERVER[$key]) && $_SERVER[$key] !== '') return trim($_SERVER[$key]);
+    $val = getenv($key);
+    return ($val !== false && $val !== '') ? trim($val) : $default;
+}
+
+$raw_host = get_db_env('DB_HOST', 'localhost');
+$dbname   = get_db_env('DB_NAME', 'food_order_db');
+$user     = get_db_env('DB_USER', 'root');
+$password = get_db_env('DB_PASS', 'tanna_anand_1');
+$port     = get_db_env('DB_PORT', '');
 
 // Clean host if user included port or protocol
 $host = trim(str_replace(['http://', 'https://'], '', $raw_host));
-$port = getenv('DB_PORT');
 
 if (strpos($host, ':') !== false) {
     $parts = explode(':', $host);
@@ -27,38 +34,14 @@ if ($port === '40000') {
 $dsn = "mysql:host=$host;port=$port;charset=utf8mb4";
 $ca_file = __DIR__ . '/cacert.pem';
 
-// 6 distinct SSL driver option combinations to ensure TiDB Cloud TLS handshake
+// 6 distinct SSL driver option combinations to ensure remote TLS handshake
 $ssl_option_sets = [
-    // 1. SSL_CA with cert verification FALSE
-    [
-        1012 => $ca_file,
-        1014 => false
-    ],
-    // 2. SSL_CA with cert verification TRUE
-    [
-        1012 => $ca_file,
-        1014 => true
-    ],
-    // 3. SSL_CA only
-    [
-        1012 => $ca_file
-    ],
-    // 4. System CA file
-    [
-        1012 => '/etc/ssl/certs/ca-certificates.crt',
-        1014 => false
-    ],
-    // 5. System CAPATH (1009 = MYSQL_ATTR_SSL_CAPATH)
-    [
-        1009 => '/etc/ssl/certs',
-        1014 => false
-    ],
-    // 6. SSL Cipher specification
-    [
-        1012 => $ca_file,
-        1011 => 'DHE-RSA-AES256-SHA:AES128-SHA',
-        1014 => false
-    ]
+    [1012 => $ca_file, 1014 => false],
+    [1012 => $ca_file, 1014 => true],
+    [1012 => $ca_file],
+    [1012 => '/etc/ssl/certs/ca-certificates.crt', 1014 => false],
+    [1009 => '/etc/ssl/certs', 1014 => false],
+    [1012 => $ca_file, 1011 => 'DHE-RSA-AES256-SHA:AES128-SHA', 1014 => false]
 ];
 
 $pdo = null;
