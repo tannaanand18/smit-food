@@ -26,9 +26,9 @@ if ($port === '40000') {
 
 $ca_file = __DIR__ . '/cacert.pem';
 
-// Comprehensive list of SSL DSN and driver options for mysqlnd & TiDB Cloud
-$dsn_attempts = [
-    // 1. DSN with sslmode=REQUIRED + MYSQL_ATTR_SSL_CA
+// Array of DSN strings & options
+$attempts = [
+    // 1. DSN with sslmode=REQUIRED + SSL_CA file
     [
         'dsn' => "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4;sslmode=REQUIRED",
         'options' => [1012 => $ca_file, 1014 => false]
@@ -38,17 +38,17 @@ $dsn_attempts = [
         'dsn' => "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4;sslmode=REQUIRED",
         'options' => []
     ],
-    // 3. DSN with sslmode=REQUIRED & sslrootcert
+    // 3. DSN with sslmode=REQUIRED;sslrootcert
     [
         'dsn' => "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4;sslmode=REQUIRED;sslrootcert=$ca_file",
         'options' => []
     ],
-    // 4. DSN with ssl-mode=REQUIRED
+    // 4. Standard DSN with MYSQL_ATTR_SSL_CA (1012)
     [
-        'dsn' => "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4;ssl-mode=REQUIRED",
-        'options' => []
+        'dsn' => "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4",
+        'options' => [1012 => $ca_file, 1014 => false]
     ],
-    // 5. Driver MYSQL_ATTR_SSL_CAPATH
+    // 5. Standard DSN with MYSQL_ATTR_SSL_CAPATH (1009)
     [
         'dsn' => "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4",
         'options' => [1009 => __DIR__, 1014 => false]
@@ -64,7 +64,7 @@ if ($host === 'localhost' || $host === '127.0.0.1') {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
     ]);
 } else {
-    foreach ($dsn_attempts as $attempt) {
+    foreach ($attempts as $attempt) {
         try {
             $opts = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -81,6 +81,6 @@ if ($host === 'localhost' || $host === '127.0.0.1') {
 }
 
 if (!$pdo) {
-    die("Database connection failed [Host: $host:$port, User: $user]: " . $last_error);
+    die("Database connection failed [Vercel Deployment Latest]: " . $last_error);
 }
 ?>
