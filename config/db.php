@@ -31,30 +31,28 @@ if ($port === '40000') {
     $port = '4000';
 }
 
-$dsn = "mysql:host=$host;port=$port;charset=utf8mb4";
+// Build DSN directly specifying assigned database
+$dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
 $ca_file = __DIR__ . '/cacert.pem';
 
-// 6 distinct SSL driver option combinations to ensure remote TLS handshake
+// Options to try (Standard TCP/IP first for Clever Cloud, then SSL)
 $ssl_option_sets = [
-    [1012 => $ca_file, 1014 => false],
-    [1012 => $ca_file, 1014 => true],
-    [1012 => $ca_file],
-    [1012 => '/etc/ssl/certs/ca-certificates.crt', 1014 => false],
-    [1009 => '/etc/ssl/certs', 1014 => false],
-    [1012 => $ca_file, 1011 => 'DHE-RSA-AES256-SHA:AES128-SHA', 1014 => false]
+    [], // 1. Standard TCP/IP (Clever Cloud default)
+    [1012 => $ca_file, 1014 => false], // 2. SSL CA
+    [1012 => '/etc/ssl/certs/ca-certificates.crt', 1014 => false], // 3. Linux System CA
+    [1009 => '/etc/ssl/certs', 1014 => false] // 4. Linux CAPATH
 ];
 
 $pdo = null;
 $last_error = '';
 
 if ($host === 'localhost' || $host === '127.0.0.1') {
-    $dsn_local = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
-    $pdo = new PDO($dsn_local, $user, $password, [
+    $pdo = new PDO($dsn, $user, $password, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
     ]);
 } else {
-    foreach ($ssl_option_sets as $idx => $ssl_opts) {
+    foreach ($ssl_option_sets as $ssl_opts) {
         try {
             $opts = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -63,32 +61,65 @@ if ($host === 'localhost' || $host === '127.0.0.1') {
             ] + $ssl_opts;
 
             $pdo = new PDO($dsn, $user, $password, $opts);
-            break; // SSL connection succeeded!
+            break; // Connection succeeded!
         } catch (PDOException $e) {
-            $last_error = "Set #" . ($idx + 1) . ": " . $e->getMessage();
+            $last_error = $e->getMessage();
         }
     }
 }
 
 if (!$pdo) {
-    die("Database connection failed [Host: $host:$port]: " . $last_error);
+    die("Database connection failed [Host: $host:$port, DB: $dbname, User: $user]: " . $last_error);
 }
 
-// Auto-provision database & tables on remote host if not present
+// Auto-seed tables into assigned database if menu table is not yet created
 try {
-    $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
-    $pdo->exec("USE `$dbname`;");
-
-    // Check if menu table exists, if not auto-seed database.sql
     $table_check = $pdo->query("SHOW TABLES LIKE 'menu'")->fetch();
     if (!$table_check) {
+        // Create tables inside current database without running CREATE DATABASE
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                email VARCHAR(150) NOT NULL UNIQUE,
+                password VARCHAR(255) NOT NULL,
+                phone VARCHAR(20),
+                address TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS menu (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(150) NOT NULL,
+                description TEXT,
+                price DECIMAL(10,2) NOT NULL,
+                category VARCHAR(100) NOT NULL,
+                image_url VARCHAR(255),
+                is_available TINYINT DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS orders (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT,
+                items JSON,
+                total_amount DECIMAL(10,2) NOT NULL,
+                status ENUM('pending', 'confirmed', 'preparing', 'delivered', 'cancelled') DEFAULT 'pending',
+                delivery_address TEXT,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+        ");
+        
         $sql_file = __DIR__ . '/../database.sql';
         if (file_exists($sql_file)) {
             $sql = file_get_contents($sql_file);
+            // Remove CREATE DATABASE and USE statements from database.sql
+            $sql = preg_replace('/CREATE DATABASE.*?;/i', '', $sql);
+            $sql = preg_replace('/USE .*?;/i', '', $sql);
             $pdo->exec($sql);
         }
     }
 } catch (PDOException $e) {
-    // Selected / created safely
+    // Tables already populated
 }
 ?>
