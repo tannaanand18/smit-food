@@ -24,31 +24,40 @@ if ($port === '40000') {
     $port = '4000';
 }
 
+$dsn = "mysql:host=$host;port=$port;charset=utf8mb4";
 $ca_file = __DIR__ . '/cacert.pem';
 
-// Connect without specifying dbname first so connection won't fail if database is not yet created
-$dsn_no_db = "mysql:host=$host;port=$port;charset=utf8mb4";
-
-$attempts = [
-    // 1. DSN sslmode=REQUIRED + CA File
+// 6 distinct SSL driver option combinations to ensure TiDB Cloud TLS handshake
+$ssl_option_sets = [
+    // 1. SSL_CA with cert verification FALSE
     [
-        'dsn' => "$dsn_no_db;sslmode=REQUIRED",
-        'options' => [1012 => $ca_file, 1014 => false]
+        1012 => $ca_file,
+        1014 => false
     ],
-    // 2. DSN sslmode=REQUIRED
+    // 2. SSL_CA with cert verification TRUE
     [
-        'dsn' => "$dsn_no_db;sslmode=REQUIRED",
-        'options' => []
+        1012 => $ca_file,
+        1014 => true
     ],
-    // 3. Standard DSN + CA File
+    // 3. SSL_CA only
     [
-        'dsn' => $dsn_no_db,
-        'options' => [1012 => $ca_file, 1014 => false]
+        1012 => $ca_file
     ],
-    // 4. Standard DSN
+    // 4. System CA file
     [
-        'dsn' => $dsn_no_db,
-        'options' => []
+        1012 => '/etc/ssl/certs/ca-certificates.crt',
+        1014 => false
+    ],
+    // 5. System CAPATH (1009 = MYSQL_ATTR_SSL_CAPATH)
+    [
+        1009 => '/etc/ssl/certs',
+        1014 => false
+    ],
+    // 6. SSL Cipher specification
+    [
+        1012 => $ca_file,
+        1011 => 'DHE-RSA-AES256-SHA:AES128-SHA',
+        1014 => false
     ]
 ];
 
@@ -62,18 +71,18 @@ if ($host === 'localhost' || $host === '127.0.0.1') {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
     ]);
 } else {
-    foreach ($attempts as $attempt) {
+    foreach ($ssl_option_sets as $idx => $ssl_opts) {
         try {
             $opts = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_TIMEOUT => 5
-            ] + $attempt['options'];
+            ] + $ssl_opts;
 
-            $pdo = new PDO($attempt['dsn'], $user, $password, $opts);
-            break;
+            $pdo = new PDO($dsn, $user, $password, $opts);
+            break; // SSL connection succeeded!
         } catch (PDOException $e) {
-            $last_error = $e->getMessage();
+            $last_error = "Set #" . ($idx + 1) . ": " . $e->getMessage();
         }
     }
 }
