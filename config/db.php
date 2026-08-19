@@ -73,55 +73,67 @@ if (!$pdo) {
         $pdo = new PDO("sqlite:" . $sqlite_file);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-
-        // Check if menu table exists in SQLite
-        $table_check = $pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name='menu'")->fetch();
-        if (!$table_check) {
-            $pdo->exec("
-                CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL,
-                    email TEXT NOT NULL UNIQUE,
-                    password TEXT NOT NULL,
-                    phone TEXT,
-                    address TEXT,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                );
-                CREATE TABLE IF NOT EXISTS menu (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL,
-                    description TEXT,
-                    price REAL NOT NULL,
-                    category TEXT NOT NULL,
-                    image_url TEXT,
-                    is_available INTEGER DEFAULT 1,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                );
-                CREATE TABLE IF NOT EXISTS orders (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER,
-                    items TEXT,
-                    total_amount REAL NOT NULL,
-                    status TEXT DEFAULT 'pending',
-                    delivery_address TEXT,
-                    notes TEXT,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                );
-            ");
-
-            // Seed full 75+ Chef Egg menu
-            $sql_file = __DIR__ . '/../database.sql';
-            if (file_exists($sql_file)) {
-                $sql = file_get_contents($sql_file);
-                $sql = preg_replace('/CREATE DATABASE.*?;/i', '', $sql);
-                $sql = preg_replace('/USE .*?;/i', '', $sql);
-                $sql = preg_replace('/TRUNCATE TABLE menu;/i', 'DELETE FROM menu;', $sql);
-                $sql = str_replace("INSERT INTO menu", "INSERT OR IGNORE INTO menu", $sql);
-                @$pdo->exec($sql);
-            }
-        }
     } catch (PDOException $sqle) {
         die("Database Initialization Error: " . $sqle->getMessage());
     }
+}
+
+// Auto-seed tables into database if menu table is missing or empty
+try {
+    // Ensure tables exist
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE,
+            password TEXT NOT NULL,
+            phone TEXT,
+            address TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS menu (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            price REAL NOT NULL,
+            category TEXT NOT NULL,
+            image_url TEXT,
+            is_available INTEGER DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            items TEXT,
+            total_amount REAL NOT NULL,
+            status TEXT DEFAULT 'pending',
+            delivery_address TEXT,
+            notes TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+    ");
+
+    $count = (int)$pdo->query("SELECT COUNT(*) FROM menu")->fetchColumn();
+    if ($count == 0) {
+        $sql_file = __DIR__ . '/../database.sql';
+        if (file_exists($sql_file)) {
+            $sql = file_get_contents($sql_file);
+            $statements = array_filter(array_map('trim', explode(';', $sql)));
+            foreach ($statements as $stmt_sql) {
+                if (empty($stmt_sql)) continue;
+                if (preg_match('/CREATE DATABASE|USE /i', $stmt_sql)) continue;
+                if (preg_match('/TRUNCATE TABLE/i', $stmt_sql)) continue;
+                try {
+                    // Adapt MySQL syntax for SQLite if active
+                    if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+                        $stmt_sql = str_replace("INSERT INTO menu", "INSERT OR IGNORE INTO menu", $stmt_sql);
+                    }
+                    $pdo->exec($stmt_sql);
+                } catch (Exception $ex) {}
+            }
+        }
+    }
+} catch (PDOException $e) {
+    // Tables initialized
 }
 ?>

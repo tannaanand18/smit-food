@@ -8,10 +8,10 @@ $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = trim(filter_var($_POST['name'], FILTER_SANITIZE_STRING));
-    $email = trim(filter_var($_POST['email'], FILTER_SANITIZE_EMAIL));
-    $password = $_POST['password'];
-    $phone = trim(filter_var($_POST['phone'], FILTER_SANITIZE_STRING));
+    $name = htmlspecialchars(trim($_POST['name'] ?? ''), ENT_QUOTES, 'UTF-8');
+    $email = trim(filter_var($_POST['email'] ?? '', FILTER_SANITIZE_EMAIL));
+    $password = $_POST['password'] ?? '';
+    $phone = htmlspecialchars(trim($_POST['phone'] ?? ''), ENT_QUOTES, 'UTF-8');
     
     if (empty($name) || empty($email) || empty($password)) {
         $error = "Name, email, and password are required.";

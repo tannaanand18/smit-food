@@ -23,10 +23,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!check_csrf_token($_POST['csrf_token'])) {
         $error = "Invalid form submission.";
     } else {
-        $delivery_name = trim(filter_var($_POST['delivery_name'], FILTER_SANITIZE_STRING));
-        $phone = trim(filter_var($_POST['phone'], FILTER_SANITIZE_STRING));
-        $address = trim(filter_var($_POST['address'], FILTER_SANITIZE_STRING));
-        $notes = trim(filter_var($_POST['notes'], FILTER_SANITIZE_STRING));
+        $delivery_name = htmlspecialchars(trim($_POST['delivery_name'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $phone = htmlspecialchars(trim($_POST['phone'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $address = htmlspecialchars(trim($_POST['address'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $notes = htmlspecialchars(trim($_POST['notes'] ?? ''), ENT_QUOTES, 'UTF-8');
         
         if (empty($delivery_name) || empty($phone) || empty($address)) {
             $error = "Name, Phone, and Address are required.";
