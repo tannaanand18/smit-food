@@ -10,19 +10,19 @@ try {
     $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_TIMEOUT => 10
+        PDO::ATTR_TIMEOUT => 5
     ];
-    
-    // Remote connections (e.g. TiDB) require SSL
-    if ($host !== 'localhost' && $host !== '127.0.0.1') {
-        $options[PDO::MYSQL_ATTR_SSL_CA] = true;
-        $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+
+    // Handle PHP version compatibility for SSL constant without deprecation warnings
+    if (class_exists('Pdo\Mysql') && defined('Pdo\Mysql::ATTR_SSL_CA')) {
+        $options[Pdo\Mysql::ATTR_SSL_CA] = true;
+    } elseif (defined('PDO::MYSQL_ATTR_SSL_CA')) {
+        @$options[PDO::MYSQL_ATTR_SSL_CA] = true;
     }
 
     $pdo = new PDO($dsn, $user, $password, $options);
 } catch (PDOException $e) {
     try {
-        // Fallback without SSL options
         $pdo = new PDO($dsn, $user, $password, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
