@@ -33,18 +33,15 @@ $options = [
     PDO::ATTR_TIMEOUT => 10
 ];
 
-// Enforce SSL with CA bundle for TiDB Cloud secure transport requirement
+// Enforce SSL using driver integer keys (1012 = SSL_CA, 1014 = VERIFY_SERVER_CERT)
 if ($host !== 'localhost' && $host !== '127.0.0.1') {
     $ca_file = __DIR__ . '/cacert.pem';
     if (file_exists($ca_file)) {
-        $options[PDO::MYSQL_ATTR_SSL_CA] = $ca_file;
+        $options[1012] = $ca_file;
     } elseif (file_exists('/etc/ssl/certs/ca-certificates.crt')) {
-        $options[PDO::MYSQL_ATTR_SSL_CA] = '/etc/ssl/certs/ca-certificates.crt';
+        $options[1012] = '/etc/ssl/certs/ca-certificates.crt';
     }
-    
-    if (defined('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')) {
-        @$options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
-    }
+    $options[1014] = false;
 }
 
 try {
